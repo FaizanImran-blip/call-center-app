@@ -38,15 +38,16 @@ def functionlocationgoogle(location_input=None):
         print("Google Maps URL:", page.url)
         print("Search page title:", page.title())
 
-        browser.close()
         functionextractlocations(page)
+        browser.close()
         # Location Input → Google Maps Search → Wait for Results → Extract Visible Text → Save/Process
 
 
 def functionextractlocations(page):
     page_url = page.url
     title = page.title()
-    extracted_text = page.locator("body").inner_text()
+    page.wait_for_timeout(3000)
+    extracted_text = page.locator("body").inner_text(timeout=15000)
 
     print("Google Maps URL:", page_url)
     print("Page Title:", title)
