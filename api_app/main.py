@@ -55,7 +55,12 @@ def functionextractlocations(page):
     print(extracted_text)
 
     return extracted_text
-
+#Raw Text Extraction → Text Cleaning → 
+# Har Business ko Separate Record mein Identify karna →
+#  Name, Rating, Reviews, Category, Address, Opening Hours, 
+# Phone, Website, Google Maps URL ko Extract karna → 
+# Missing Information ko null rakhna → Har Business ko Separate JSON Object mein Store karna → JSON Validation → Database/CRM mein Save karna.
 
 if __name__ == "__main__":
     functionlocationgoogle()
+
