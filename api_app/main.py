@@ -1,6 +1,7 @@
-
 from playwright.sync_api import sync_playwright
-#Manual Location Input → Playwright Browser Launch → Geolocation Permission Setup → Google Maps Search → Results URL, Page Title aur Location Output.
+
+# Manual Location Input → Playwright Browser Launch → Geolocation Permission Setup → Google Maps Search → Results URL, Page Title aur Location Output.
+
 
 def functionlocationgoogle(location_input=None):
     """
@@ -38,6 +39,21 @@ def functionlocationgoogle(location_input=None):
         print("Search page title:", page.title())
 
         browser.close()
+        functionextractlocations(page)
+        # Location Input → Google Maps Search → Wait for Results → Extract Visible Text → Save/Process
+
+
+def functionextractlocations(page):
+    page_url = page.url
+    title = page.title()
+    extracted_text = page.locator("body").inner_text()
+
+    print("Google Maps URL:", page_url)
+    print("Page Title:", title)
+    print("Extracted Results Text:")
+    print(extracted_text)
+
+    return extracted_text
 
 
 if __name__ == "__main__":
