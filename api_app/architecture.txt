@@ -1,0 +1,5 @@
+api- ui->database-ai powered
+
+crm fetch location from maps-> details show
+architecture 1-:
+Location Input → Browser Agent → Company Listings → Name, Address, Phone & Website Extraction → Website Visit → Public Business Information → Data Validation → Duplicate Removal → PostgreSQL CRM → Lead Search & Follow-ups.
