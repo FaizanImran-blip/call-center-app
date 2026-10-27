@@ -46,24 +46,27 @@ def functionlocationgoogle(location_input=None):
         # Location Input → Google Maps Search → Wait for Results → Extract Visible Text → Save/Process
 
 
-def functionextractlocations(page):
-
-    page_url = page.url
-    title = page.title()
-
-    page.wait_for_timeout(3000)
-    extracted_text = page.locator("body").inner_text(timeout=15000)
-
-    # Normalize text
+def functioncleantext(extracted_text):
     text = unicodedata.normalize("NFKC", extracted_text)
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = re.sub(r"[ \t]+", " ", text)
 
-    # Remove common Google Maps UI garbage
+    blocks = re.split(r"\n\s*Directions\s*\n", text + "\n")
+    open_blocks = []
+    for block in blocks:
+        if re.search(
+            r"^\s*(Closed|Temporarily closed|Permanently closed)\b",
+            block,
+            re.IGNORECASE | re.MULTILINE,
+        ):
+            continue
+        open_blocks.append(block)
+    text = "\n".join(open_blocks)
+
     garbage_labels = {
         "rating",
         "you're seeing a limited view of google maps. see more",
-        " layers",
+        "layers",
         "500 m",
         "hours",
         "all filters",
@@ -77,41 +80,42 @@ def functionextractlocations(page):
         "website",
         "search this area",
         "update results when map moves",
-        "map data ©2026 globaltermsprivacySend Product Feedback".casefold(),
+        "map data ©2026 globaltermsprivacysend product feedback",
     }
 
     cleaned_lines = []
     seen_lines = set()
-
     for line in text.splitlines():
-        # Remove Google Maps result-correction text
         if re.match(
             r"^Showing results for .* Search instead for ", line, re.IGNORECASE
         ):
             continue
-
-        # Remove embedded Google Maps icon symbols
-        line = line.replace("", "").replace("", "").strip()
-
+        line = line.replace("", "").replace("", "").strip()
         if not line:
             continue
-        line = line.strip()
-
-        if not line:
-            continue
-
         if line.casefold() in garbage_labels:
             continue
-
         if re.fullmatch(r"[^\w\s]+", line):
             continue
-
+        if re.fullmatch(r"\d+(\.\d+)?\s?(km|m|mi|ft)", line, re.IGNORECASE):
+            continue
         key = line.casefold()
         if key not in seen_lines:
             seen_lines.add(key)
             cleaned_lines.append(line)
 
-    cleaned_text = "\n".join(cleaned_lines)
+    return "\n".join(cleaned_lines)
+
+
+def functionextractlocations(page):
+
+    page_url = page.url
+    title = page.title()
+
+    page.wait_for_timeout(3000)
+    extracted_text = page.locator("body").inner_text(timeout=15000)
+
+    cleaned_text = functioncleantext(extracted_text)
     data = {
         "google_maps_url": page_url,
         "page_title": title,
