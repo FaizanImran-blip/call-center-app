@@ -60,6 +60,9 @@ def functionextractlocations(page):
     # Remove common Google Maps UI garbage
     garbage_labels = {
         "rating",
+        "you're seeing a limited view of google maps. see more",
+" layers",
+"500 m",
         "hours",
         "all filters",
         "saved",
@@ -79,6 +82,15 @@ def functionextractlocations(page):
     seen_lines = set()
 
     for line in text.splitlines():
+        # Remove Google Maps result-correction text
+        if re.match(r"^Showing results for .* Search instead for ", line, re.IGNORECASE):
+            continue
+
+        # Remove embedded Google Maps icon symbols
+        line = line.replace("", "").replace("", "").strip()
+
+        if not line:
+            continue
         line = line.strip()
 
         if not line:
