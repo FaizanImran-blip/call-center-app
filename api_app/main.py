@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 import re
 import unicodedata
+import json
 
 # Manual Location Input → Playwright Browser Launch → Geolocation Permission Setup → Google Maps Search → Results URL, Page Title aur Location Output.
 
@@ -46,6 +47,7 @@ def functionlocationgoogle(location_input=None):
 
 
 def functionextractlocations(page):
+
     page_url = page.url
     title = page.title()
 
@@ -61,8 +63,8 @@ def functionextractlocations(page):
     garbage_labels = {
         "rating",
         "you're seeing a limited view of google maps. see more",
-" layers",
-"500 m",
+        " layers",
+        "500 m",
         "hours",
         "all filters",
         "saved",
@@ -83,7 +85,9 @@ def functionextractlocations(page):
 
     for line in text.splitlines():
         # Remove Google Maps result-correction text
-        if re.match(r"^Showing results for .* Search instead for ", line, re.IGNORECASE):
+        if re.match(
+            r"^Showing results for .* Search instead for ", line, re.IGNORECASE
+        ):
             continue
 
         # Remove embedded Google Maps icon symbols
@@ -108,12 +112,18 @@ def functionextractlocations(page):
             cleaned_lines.append(line)
 
     cleaned_text = "\n".join(cleaned_lines)
+    data = {
+        "google_maps_url": page_url,
+        "page_title": title,
+        "extracted_text": cleaned_text,
+    }
 
     print("Google Maps URL:", page_url)
     print("Page Title:", title)
     print("Cleaned Results Text:")
     print(cleaned_text)
-
+    with open("companies.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
     return cleaned_text
 
 
