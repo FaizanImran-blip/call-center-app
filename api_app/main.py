@@ -106,32 +106,125 @@ def functioncleantext(extracted_text):
 
     return "\n".join(cleaned_lines)
 
-
 def functionextractlocations(page, search_location):
+    feed = page.locator('div[role="feed"]')
+    feed.wait_for(timeout=15000)
 
-    page_url = page.url
-    title = page.title()
+    # 1) Scroll karke saare results load karo
+    prev = 0
+    for _ in range(30):
+        feed.evaluate("el => el.scrollBy(0, el.scrollHeight)")
+        page.wait_for_timeout(1500)
+        count = page.locator('div[role="feed"] a[href*="/maps/place/"]').count()
+        if count == prev:
+            break
+        prev = count
 
-    page.wait_for_timeout(3000)
-    extracted_text = page.locator("body").inner_text(timeout=15000)
+    # 2) Har card se structured data
+    phone_re = re.compile(r"(\+?\d[\d\s\-()]{7,}\d)")
+    status_re = re.compile(
+        r"^(Open|Closed|Opens|Closes|Temporarily closed|Permanently closed)", re.I
+    )
+    closed_re = re.compile(
+        r"^(Closed|Temporarily closed|Permanently closed)", re.I
+    )
 
-    cleaned_text = functioncleantext(extracted_text)
+    businesses = []
+    seen = set()
+    links = page.locator('div[role="feed"] a[href*="/maps/place/"]')
+
+    for i in range(links.count()):
+        link = links.nth(i)
+        name = (link.get_attribute("aria-label") or "").strip()
+        url = link.get_attribute("href")
+        if not name or url in seen:
+            continue
+        seen.add(url)
+
+        card = link.locator("xpath=..")  # card = a tag ka parent
+        text = card.inner_text()
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+
+        # rating + reviews
+        rating = reviews = None
+        img = card.locator('span[role="img"]')
+        if img.count():
+            label = img.first.get_attribute("aria-label") or ""
+            m = re.search(r"([\d.,]+)\s*stars?\s*([\d.,]+)?", label)
+            if m:
+                rating = float(m.group(1).replace(",", "."))
+                reviews = int(re.sub(r"\D", "", m.group(2))) if m.group(2) else 0
+
+        # status, category, address, phone
+        status = category = address = phone = None
+        def clean_part(s):
+            s = unicodedata.normalize("NFKC", s)
+            s = re.sub(r"[\u200b-\u200f\u2060\ufeff\ue000-\uf8ff]", "", s)  # zero-width + private-use icons
+            return s.strip()
+        for line in lines:
+            if line == name or re.fullmatch(r"(Website|Directions)", line):
+                continue
+            if re.match(r"^(\d[.,]\d\(|No reviews)", line):  # rating line
+                continue
+
+            # phone kisi bhi line mein ho sakta hai
+            pm = phone_re.search(line)
+            if pm and phone is None and not re.fullmatch(r"[\d.,()]+", line):
+                phone = pm.group(1).strip()
+                line = line.replace(pm.group(1), "").strip(" ·")
+
+            if not line:
+                continue
+
+            if status is None and status_re.match(line):
+                status = line.split("·")[0].strip()
+                continue
+
+            if category is None:
+                parts = [clean_part(p) for p in line.split("·")]
+                parts = [p for p in parts if p]
+                if parts:
+                    category = parts[0]
+                    if len(parts) > 1:
+                        address = parts[1]
+                continue
+
+        # Closed wale skip
+        if status and closed_re.match(status):
+            continue
+
+        web = card.locator('a[data-value="Website"]')
+        coords = re.search(r"!3d(-?[\d.]+)!4d(-?[\d.]+)", url or "")
+
+        businesses.append(
+            {
+                "name": name,
+                "rating": rating,
+                "reviews": reviews,
+                "category": category,
+                "address": address,
+                "status": status,
+                "phone": phone,
+                "website": web.first.get_attribute("href") if web.count() else None,
+                "lat": float(coords.group(1)) if coords else None,
+                "lng": float(coords.group(2)) if coords else None,
+                "maps_url": url,
+                "raw_text": text,  # check karne ke baad hata dena
+            }
+        )
+
     data = {
-        "businesses": [],
-        "google_maps_url": page_url,
-        "page_title": title,
         "search_query": search_location,
-        "extracted_text": cleaned_text,
+        "google_maps_url": page.url,
+        "page_title": page.title(),
+        "total": len(businesses),
+        "businesses": businesses,
     }
 
-    print("Google Maps URL:", page_url)
-    print("Page Title:", title)
-    print("Cleaned Results Text:")
-    print(cleaned_text)
-    with open("companies.json", "w", encoding="utf-8") as file:
-        json.dump(data, file, ensure_ascii=False, indent=2)
+    with open("companies.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"Saved {len(businesses)} businesses")
     return data
-
 
 if __name__ == "__main__":
     functionlocationgoogle()
