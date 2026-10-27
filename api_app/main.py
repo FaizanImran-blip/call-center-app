@@ -41,7 +41,7 @@ def functionlocationgoogle(location_input=None):
         print("Google Maps URL:", page.url)
         print("Search page title:", page.title())
 
-        functionextractlocations(page)
+        functionextractlocations(page, search_location)
         browser.close()
         # Location Input → Google Maps Search → Wait for Results → Extract Visible Text → Save/Process
 
@@ -107,7 +107,7 @@ def functioncleantext(extracted_text):
     return "\n".join(cleaned_lines)
 
 
-def functionextractlocations(page):
+def functionextractlocations(page, search_location):
 
     page_url = page.url
     title = page.title()
@@ -117,8 +117,10 @@ def functionextractlocations(page):
 
     cleaned_text = functioncleantext(extracted_text)
     data = {
+        "businesses": [],
         "google_maps_url": page_url,
         "page_title": title,
+        "search_query": search_location,
         "extracted_text": cleaned_text,
     }
 
@@ -128,7 +130,7 @@ def functionextractlocations(page):
     print(cleaned_text)
     with open("companies.json", "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=2)
-    return cleaned_text
+    return data
 
 
 if __name__ == "__main__":
