@@ -3,3 +3,6 @@ api- ui->database-ai powered
 crm fetch location from maps-> details show
 architecture 1-:
 Location Input → Browser Agent → extract text -> clean text save in json
+
+
+for one show its show multiple companies with json structure bug is it have to show step by step companies extraction to proccess fast for ui
