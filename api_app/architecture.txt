@@ -6,3 +6,7 @@ Location Input → Browser Agent → extract text -> clean text save in json
 
 
 for one show its show multiple companies with json structure bug is it have to show step by step companies extraction to proccess fast for ui
+
+Best low-budget flow: Pakistan App → Free Python/FastAPI → Asterisk (self-hosted) → Telnyx Voice API/SIP trunk → Foreign client ki SIM
+Telnyx par pay-as-you-go option hai; API fee $0.002/min se aur outbound SIP trunk $0.005/min se shuru hota hai, lekin actual call ka total rate destination country ke mutabiq hoga. 
+Telnyx+1
