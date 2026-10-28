@@ -3,8 +3,6 @@ api- ui->database-ai powered
 crm fetch location from maps-> details show
 architecture 1-:
 Location Input → Browser Agent → extract text -> clean text save in json
+call service archtiecture:
 
-
-for one show its show multiple companies with json structure bug is it have to show step by step companies extraction to proccess fast for ui
-
-Flow: Pakistan App / kisi bhi country ki app → Python FastAPI → Telnyx Voice API → international telecom network → foreign client ki normal SIM; API key, verified caller ID aur destination-country permissions configure karni hongi, aur call ke per-minute charges lagenge.
+Call2Phone/Vision Telecom se international SIP trunk lo → Asterisk/FreePBX connect karo → Python FastAPI integrate karo → foreign clients ke numbers par calls karo.
