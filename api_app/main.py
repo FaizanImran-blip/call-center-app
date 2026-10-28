@@ -25,8 +25,11 @@ def functionlocationgoogle(location_input=None):
         else:
             page.goto("https://www.google.com/maps")
             print("Browser mein location permission allow karein.")
-            search_location = input("Enter location manually: ").strip()
 
+            location = input("Enter location: ").strip()
+            name = input("Enter name: ").strip()
+
+            search_location = " ".join(value for value in (location, name) if value)
         if not search_location:
             print("Error: Location required.")
             browser.close()
@@ -106,6 +109,7 @@ def functioncleantext(extracted_text):
 
     return "\n".join(cleaned_lines)
 
+
 def functionextractlocations(page, search_location):
     feed = page.locator('div[role="feed"]')
     feed.wait_for(timeout=15000)
@@ -125,9 +129,7 @@ def functionextractlocations(page, search_location):
     status_re = re.compile(
         r"^(Open|Closed|Opens|Closes|Temporarily closed|Permanently closed)", re.I
     )
-    closed_re = re.compile(
-        r"^(Closed|Temporarily closed|Permanently closed)", re.I
-    )
+    closed_re = re.compile(r"^(Closed|Temporarily closed|Permanently closed)", re.I)
 
     businesses = []
     seen = set()
@@ -157,10 +159,14 @@ def functionextractlocations(page, search_location):
 
         # status, category, address, phone
         status = category = address = phone = None
+
         def clean_part(s):
             s = unicodedata.normalize("NFKC", s)
-            s = re.sub(r"[\u200b-\u200f\u2060\ufeff\ue000-\uf8ff]", "", s)  # zero-width + private-use icons
+            s = re.sub(
+                r"[\u200b-\u200f\u2060\ufeff\ue000-\uf8ff]", "", s
+            )  # zero-width + private-use icons
             return s.strip()
+
         for line in lines:
             if line == name or re.fullmatch(r"(Website|Directions)", line):
                 continue
@@ -225,6 +231,7 @@ def functionextractlocations(page, search_location):
         json.dump(data, f, ensure_ascii=False, indent=2)
     print(f"Saved {len(businesses)} businesses")
     return data
+
 
 if __name__ == "__main__":
     functionlocationgoogle()
