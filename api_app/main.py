@@ -111,7 +111,90 @@ def functioncleantext(extracted_text):
 
 
 def functionextractlocations(page, search_location):
+        # Single business page fallback: jab results feed na mile
     feed = page.locator('div[role="feed"]')
+
+    if feed.count() == 0:
+        main = page.locator('div[role="main"]')
+        heading = main.locator("h1").first
+
+        businesses = []
+
+        if main.count() and heading.count():
+            name = (heading.inner_text() or "").strip()
+            main_text = main.inner_text()
+            closed_re = re.compile(
+                r"\b(Temporarily closed|Permanently closed|Closed)\b",
+                re.IGNORECASE
+            )
+
+            # Closed business ko save na karo
+            if name:
+                rating = reviews = category = address = phone = website = None
+
+                rating_el = main.locator(".F7nice").first
+                if rating_el.count():
+                    rating_text = rating_el.inner_text()
+                    rm = re.search(r"([\d.]+)", rating_text)
+                    if rm:
+                        rating = float(rm.group(1))
+
+                    review_el = rating_el.locator('[role="img"]')
+                    if review_el.count():
+                        review_label = review_el.first.get_attribute("aria-label") or ""
+                        review_match = re.search(r"(\d[\d,]*)\s+reviews?", review_label, re.I)
+                        if review_match:
+                            reviews = int(review_match.group(1).replace(",", ""))
+
+                category_el = main.locator("button.DkEaL").first
+                if category_el.count():
+                    category = category_el.inner_text().strip() or None
+
+                address_el = main.locator('[data-item-id="address"]').first
+                if address_el.count():
+                    address = address_el.inner_text().strip() or None
+
+                phone_el = main.locator('[data-item-id^="phone:tel:"]').first
+                if phone_el.count():
+                    phone = phone_el.get_attribute("aria-label") or ""
+                    phone = re.sub(r"^Phone:\s*", "", phone).strip() or None
+
+                website_el = main.locator('a[data-item-id="authority"]').first
+                if website_el.count():
+                    website = website_el.get_attribute("href")
+
+                coords = re.search(r"!3d(-?[\d.]+)!4d(-?[\d.]+)", page.url)
+
+                businesses.append({
+                    "name": name,
+                    "rating": rating,
+                    "reviews": reviews,
+                    "category": category,
+                    "address": address,
+                    "status": None,
+                    "phone": phone,
+                    "website": website,
+                    "lat": float(coords.group(1)) if coords else None,
+                    "lng": float(coords.group(2)) if coords else None,
+                    "maps_url": page.url,
+                    "raw_text": main_text,
+                })
+
+        data = {
+            "search_query": search_location,
+            "google_maps_url": page.url,
+            "page_title": page.title(),
+            "total": len(businesses),
+            "businesses": businesses,
+        }
+
+        with open("companies.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        print(f"Single-page fallback: saved {len(businesses)} businesses")
+        return data
+
+    # Neeche tumhara existing feed wala code bilkul same rahega
     feed.wait_for(timeout=15000)
 
     # 1) Scroll karke saare results load karo
