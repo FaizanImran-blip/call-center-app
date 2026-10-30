@@ -13,7 +13,7 @@ def functionlocationgoogle(location_input=None):
     """
 
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(headless=True)
         context = browser.new_context(
             geolocation={"latitude": 31.5204, "longitude": 74.3587},
             permissions=["geolocation"],

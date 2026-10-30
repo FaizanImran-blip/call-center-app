@@ -1,2 +1,3 @@
 documentation singlewire:
+doc for vercel deploy left:Docker (Linux container) → Linux Chromium install → Playwright browser path verify → Vercel build configuration → vercel --prod
 FastAPI Endpoint → SignalWire REST Client → Project ID + API Token + Space URL Authentication → SWML → Outbound Call API → Foreign Mobile Number.
