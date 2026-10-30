@@ -1,0 +1,7 @@
+run: uvicorn route:app --reload
+route.ts-> get or post companies from ui:
+curl -X POST "http://127.0.0.1:8000/postlocation/" \
+-H "Content-Type: application/json" \
+-d '{"location":"Lahore","name":"Software Houses"}'
+
+
