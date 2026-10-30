@@ -5,5 +5,5 @@ architecture 1-:
 
 Location Input → Browser Agent → extract text -> clean text save in json
 call service archtiecture:
-vonage api for call service:
+signal wire api for call service:
 Call2Phone/Vision Telecom se international SIP trunk lo → Asterisk/FreePBX connect karo → Python FastAPI integrate karo → foreign clients ke numbers par calls karo.

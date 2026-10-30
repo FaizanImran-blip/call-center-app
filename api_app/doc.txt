@@ -1,0 +1,2 @@
+documentation singlewire:
+FastAPI Endpoint → SignalWire REST Client → Project ID + API Token + Space URL Authentication → SWML → Outbound Call API → Foreign Mobile Number.
