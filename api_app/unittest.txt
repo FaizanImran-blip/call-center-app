@@ -5,3 +5,4 @@ curl -X POST "http://127.0.0.1:8000/postlocation/" \
 -d '{"location":"Lahore","name":"Software Houses"}'
 
 
+curl -X GET "http://127.0.0.1:8000/getcompanies/"
