@@ -1,3 +1,5 @@
+fastapi
+uvicorn
 playwright==1.64.1
 pyee==14.0.0
 greenlet==3.5.6

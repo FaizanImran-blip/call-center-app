@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from signalwire.rest import RestClient
+from signalwire import SWMLBuilder, SWMLService
 
 # Load environment variables from .env
 load_dotenv()
@@ -13,36 +14,46 @@ SIGNALWIRE_API_TOKEN = os.getenv("SIGNALWIRE_API_TOKEN")
 def functionauthenticate():
 
     # Validate credentials
-    if not all([
-        SIGNALWIRE_SPACE,
-        SIGNALWIRE_PROJECT_ID,
-        SIGNALWIRE_API_TOKEN
-    ]):
-        return {
-            "success": False,
-            "message": "SignalWire credentials are missing."
-        }
+    if not all([SIGNALWIRE_SPACE, SIGNALWIRE_PROJECT_ID, SIGNALWIRE_API_TOKEN]):
+        return {"success": False, "message": "SignalWire credentials are missing."}
 
     try:
         # Initialize SignalWire client
         client = RestClient(
             project=SIGNALWIRE_PROJECT_ID,
             token=SIGNALWIRE_API_TOKEN,
-            host=SIGNALWIRE_SPACE
+            host=SIGNALWIRE_SPACE,
         )
 
         return {
             "success": True,
             "message": "SignalWire client initialized successfully.",
-            "client": client
+            "client": client,
         }
 
     except Exception as error:
-        return {
-            "success": False,
-            "message": str(error)
-        }
-    
+        return {"success": False, "message": str(error)}
+
+
 if __name__ == "__main__":
     result = functionauthenticate()
-    print(result)
+
+    if result["success"]:
+        client = result["client"]
+
+        swml = (
+            SWMLBuilder(SWMLService(name="client-call"))
+            .say("Hello, this is an automated call.", voice="elevenlabs.rachel")
+            .hangup()
+            .build()
+        )
+
+        call = client.calling.dial(
+            from_=os.getenv("SIGNALWIRE_CALLER_ID"),
+            to=os.getenv("CLIENT_NUMBER"),
+            swml=swml,
+        )
+
+        print("Call started:", call["id"])
+    else:
+        print(result["message"])
