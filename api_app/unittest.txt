@@ -6,3 +6,9 @@ curl -X POST "http://127.0.0.1:8000/postlocation/" \
 
 
 curl -X GET "http://127.0.0.1:8000/getcompanies/"
+vercel commands :
+curl -X POST "https://crm-call-api.vercel.app/postlocation/" \
+-H "Content-Type: application/json" \
+-d '{"location":"Lahore","name":"Software Houses"}'
+
+curl -X GET "https://crm-call-api.vercel.app/getcompanies/"
